@@ -77,7 +77,9 @@ module WebsocketRails
         #  EM.next_tick { flush; flush_scheduled = false }
         #  flush_scheduled = true
         #end
-        send "[#{event.serialize}]"
+
+        #send "[#{event.serialize}]"
+        send event.serialize
       end
 
       def flush
