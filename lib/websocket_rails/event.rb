@@ -70,8 +70,12 @@ module WebsocketRails
     def self.new_from_json(encoded_data, connection)
       case encoded_data
       when String
-        event_name, data = JSON.parse encoded_data
-        data = data.merge(:connection => connection).with_indifferent_access
+        #event_name, data = JSON.parse encoded_data 
+        #data = data.merge(:connection => connection).with_indifferent_access
+        jobj = JSON.parse(encoded_data, { symbolize_names: true })
+        event_name = jobj[:p_id]
+        data = jobj.merge(:connection => connection).with_indifferent_access
+
         Event.new event_name, data
         # when Array
         # TODO: Handle file
@@ -115,17 +119,19 @@ module WebsocketRails
     end
 
     def serialize
-      [
-        encoded_name,
-        {
-          :id => id,
-          :channel => channel,
-          :data => data,
-          :success => success,
-          :result => result,
-          :server_token => server_token
-        }
-      ].to_json
+      #[
+      #  encoded_name,
+      #  {
+      #    :id => id,
+      #    :channel => channel,
+      #    :data => data,
+      #    :success => success,
+      #    :result => result,
+      #    :server_token => server_token
+      #  }
+      #].to_json
+      data[:p_id] = encoded_name
+      data.to_json
     end
 
     def is_channel?
