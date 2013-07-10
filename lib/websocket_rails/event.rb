@@ -73,7 +73,13 @@ module WebsocketRails
         #event_name, data = JSON.parse encoded_data 
         #data = data.merge(:connection => connection).with_indifferent_access
         jobj = JSON.parse(encoded_data, { symbolize_names: true })
-        event_name = jobj[:p_id]
+
+        if !jobj[:p_id].nil?
+          event_name = jobj[:p_id]
+        else
+          event_name = jobj[:id] unless jobj[:id].nil?
+        end
+
         data = jobj.merge(:connection => connection).with_indifferent_access
 
         Event.new event_name, data
