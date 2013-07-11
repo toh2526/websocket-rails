@@ -75,9 +75,9 @@ module WebsocketRails
         jobj = JSON.parse(encoded_data, { symbolize_names: true })
 
         if !jobj[:p_id].nil?
-          event_name = jobj[:p_id]
+          event_name = PROTOCOLS[jobj[:p_id]]
         else
-          event_name = jobj[:id] unless jobj[:id].nil?
+          event_name = PROTOCOLS[jobj[:command]] unless jobj[:command].nil?
         end
 
         data = jobj.merge(:connection => connection).with_indifferent_access
@@ -136,7 +136,7 @@ module WebsocketRails
       #    :server_token => server_token
       #  }
       #].to_json
-      data[:p_id] = encoded_name
+      data[:p_id] = PROTOCOLS[encoded_name.to_sym]
       data.to_json
     end
 
