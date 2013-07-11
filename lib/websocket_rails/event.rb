@@ -4,7 +4,7 @@ module WebsocketRails
 
     def new_on_open(connection,data=nil)
       connection_id = {
-        :connection_id => connection.id
+        :id => connection.id
       }
       data = data.is_a?(Hash) ? data.merge( connection_id ) : connection_id
       Event.new :client_connected, :data => data, :connection => connection
@@ -136,7 +136,14 @@ module WebsocketRails
       #    :server_token => server_token
       #  }
       #].to_json
-      data[:p_id] = PROTOCOLS[encoded_name.to_sym]
+      p_id = PROTOCOLS[encoded_name.to_sym]
+
+      if p_id < 10
+        data[:command] = p_id
+      else
+        data[:p_id] = p_id
+      end
+
       data.to_json
     end
 
