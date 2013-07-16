@@ -1,5 +1,5 @@
 module WebsocketRails
-  class class Enum < Hash
+  class Enum < Hash
     def initialize(*members)
       @rev = {}
       members.each { |k,v| self[v] = k }
