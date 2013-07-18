@@ -33,6 +33,7 @@ module WebsocketRails
         @request    = request
         @dispatcher = dispatcher
         @connected  = true
+        @auth       = false
         @queue      = EventQueue.new
         @data_store = DataStore::Connection.new(self)
         @delegate   = WebsocketRails::DelegationController.new
@@ -130,16 +131,17 @@ module WebsocketRails
         dispatcher.connection_manager.close_connection self
       end
 
-      attr_accessor :pong
-      public :pong, :pong=
+      attr_accessor :pong :auth
+      public :pong, :pong=, :auth, :auth=
 
       def start_ping_timer
         @pong = true
         @ping_timer = EM::PeriodicTimer.new(10) do
-          if pong == true
+          if pong == true && auth == true
             self.pong = false
-            ping = Event.new_on_ping self
-            trigger ping
+            #ping = Event.new_on_ping self
+            #trigger ping
+            self.ping id
           else
             @ping_timer.cancel
             on_error
