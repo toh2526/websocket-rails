@@ -131,7 +131,7 @@ module WebsocketRails
         dispatcher.connection_manager.close_connection self
       end
 
-      attr_accessor :pong :auth
+      attr_accessor :pong, :auth
       public :pong, :pong=, :auth, :auth=
 
       def start_ping_timer
