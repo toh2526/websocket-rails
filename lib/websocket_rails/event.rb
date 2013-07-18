@@ -138,10 +138,12 @@ module WebsocketRails
       #].to_json
       p_id = PROTOCOLS[encoded_name.to_sym]
 
-      if p_id < 10
-        data[:command] = p_id
-      else
-        data[:p_id] = p_id
+      if !p_id.nil?
+        if p_id < 10
+          data[:command] = p_id
+        else
+          data[:p_id] = p_id
+        end
       end
 
       data.to_json
