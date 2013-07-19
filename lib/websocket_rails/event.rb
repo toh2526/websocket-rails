@@ -81,9 +81,7 @@ module WebsocketRails
         end
 
         Event.new event_name, {
-          #:id => nil,
-          #:channel => nil,
-          #:server_token => nil,
+          :id => 1,
           :connection => connection,
           :data => jobj
         }
