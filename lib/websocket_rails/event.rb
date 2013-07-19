@@ -75,14 +75,19 @@ module WebsocketRails
         jobj = JSON.parse(encoded_data, { symbolize_names: true })
 
         if !jobj[:p_id].nil?
-          event_name = PROTOCOLS[jobj[:p_id]]
+          event_name = PROTOCOLS[jobj[:p_id]].to_s
         else
-          event_name = PROTOCOLS[jobj[:command]] unless jobj[:command].nil?
+          event_name = PROTOCOLS[jobj[:command]].to_s unless jobj[:command].nil?
         end
 
-        data = jobj.merge(:connection => connection).with_indifferent_access
+        Event.new event_name, {
+          #:id => nil,
+          #:channel => nil,
+          #:server_token => nil,
+          :connection => connection,
+          :data => jobj
+        }
 
-        Event.new event_name, { :data => data }
         # when Array
         # TODO: Handle file
         #File.open("/tmp/test#{rand(100)}.jpg", "wb") do |file|
