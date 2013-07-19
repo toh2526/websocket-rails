@@ -82,7 +82,7 @@ module WebsocketRails
 
         data = jobj.merge(:connection => connection).with_indifferent_access
 
-        Event.new event_name, data
+        Event.new event_name, { :data => data }
         # when Array
         # TODO: Handle file
         #File.open("/tmp/test#{rand(100)}.jpg", "wb") do |file|
