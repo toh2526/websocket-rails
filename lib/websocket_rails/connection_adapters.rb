@@ -139,9 +139,8 @@ module WebsocketRails
         @ping_timer = EM::PeriodicTimer.new(10) do
           if pong == true && auth == true
             self.pong = false
-            #ping = Event.new_on_ping self
-            #trigger ping
-            self.ping id
+            ping = Event.new_on_ping self
+            trigger ping
           else
             @ping_timer.cancel
             on_error
