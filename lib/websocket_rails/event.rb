@@ -22,6 +22,10 @@ module WebsocketRails
       Event.new :ping, :data => {}, :connection => connection, :namespace => :websocket_rails
     end
 
+    def new_on_pong(connection)
+      Event.new :pong, :data => {}, :connection => connection, :namespace => :websocket_rails
+    end
+
     def new_on_invalid_event_received(connection,data=nil)
       Event.new :invalid_event, :data => data, :connection => connection
     end
