@@ -15,8 +15,8 @@ module WebsocketRails
         on_open
       end
 
-      def ping(message=nil)
-        @connection.ping message
+      def ping(message=nil, &callback)
+        @connection.ping(message, &callback)
       end
 
       def send(message)

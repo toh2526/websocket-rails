@@ -33,6 +33,7 @@ module WebsocketRails
         @request    = request
         @dispatcher = dispatcher
         @connected  = true
+        @pong       = true
         @auth       = false
         @queue      = EventQueue.new
         @data_store = DataStore::Connection.new(self)
@@ -84,7 +85,11 @@ module WebsocketRails
       end
 
       def trigger_ping
-        ping
+        ping(nil,onpong)
+      end
+
+      def onpong
+        pong = true
       end
 
       def flush
@@ -139,13 +144,10 @@ module WebsocketRails
       public :pong, :pong=, :auth, :auth=
 
       def start_ping_timer
-        @pong = true
         @ping_timer = EM::PeriodicTimer.new(10) do
           if pong == true && auth == true
-            self.pong = false
+            pong = false
             trigger_ping
-            #ping = Event.new_on_ping self
-            #trigger ping
           else
             @ping_timer.cancel
             on_error
