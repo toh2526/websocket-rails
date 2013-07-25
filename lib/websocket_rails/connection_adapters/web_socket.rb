@@ -15,6 +15,10 @@ module WebsocketRails
         on_open
       end
 
+      def ping(message=nil)
+        @connection.ping message
+      end
+
       def send(message)
         @connection.send message
       end

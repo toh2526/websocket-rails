@@ -83,6 +83,10 @@ module WebsocketRails
         send event.serialize
       end
 
+      def trigger_ping
+        ping
+      end
+
       def flush
         count = 1
         message = "["
@@ -139,7 +143,7 @@ module WebsocketRails
         @ping_timer = EM::PeriodicTimer.new(10) do
           if pong == true && auth == true
             self.pong = false
-            self.ping
+            trigger_ping
             #ping = Event.new_on_ping self
             #trigger ping
           else
