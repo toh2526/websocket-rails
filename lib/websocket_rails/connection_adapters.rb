@@ -85,7 +85,9 @@ module WebsocketRails
       end
 
       def trigger_ping
-        ping(nil,onpong)
+	ping nil do
+          onpong() 
+	end
       end
 
       def onpong
