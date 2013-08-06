@@ -1,6 +1,7 @@
 module WebsocketRails
   module ConnectionAdapters
     class WebSocket < Base
+      include Logging
 
       def self.accepts?(env)
         Faye::WebSocket.websocket?( env )
@@ -29,6 +30,8 @@ module WebsocketRails
       end
 
       def close!
+        debug "ConnectionAdapters.WebSocket.close!"
+
         @connection.close
       end
 
