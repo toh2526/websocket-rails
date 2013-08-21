@@ -55,12 +55,16 @@ module WebsocketRails
       end
 
       def on_close(data=nil)
+        debug "ConnectionAdapters.on_close"
+
         @ping_timer.cancel
         dispatch Event.new_on_close( self, data )
         close_connection
       end
 
       def on_error(data=nil)
+        debug "ConnectionAdapters.on_error"
+
         event = Event.new_on_error( self, data )
         dispatch event
         on_close event.data
