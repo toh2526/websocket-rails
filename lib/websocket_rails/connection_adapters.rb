@@ -64,6 +64,7 @@ module WebsocketRails
 
       def on_error(data=nil)
         debug "ConnectionAdapters.on_error"
+        debug "on_error: #{data.class.name} #{data.inspect}"
 
         event = Event.new_on_error( self, data )
         dispatch event
