@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    websocket-rails (0.4.9)
+    websocket-rails (0.6.2)
       em-synchrony
       faye-websocket
       hiredis
@@ -197,6 +197,7 @@ GEM
     tzinfo (0.3.37)
     websocket (1.0.7)
     websocket-driver (0.2.1)
+    websocket-driver (0.2.1-java)
 
 PLATFORMS
   java

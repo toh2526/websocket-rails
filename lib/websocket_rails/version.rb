@@ -1,3 +1,3 @@
 module WebsocketRails
-  VERSION = "0.4.9"
+  VERSION = "0.6.2"
 end

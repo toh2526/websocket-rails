@@ -5,11 +5,12 @@ Gem::Specification.new do |s|
   s.name         = "websocket-rails"
   s.summary      = "Plug and play websocket support for ruby on rails. Includes event router for mapping javascript events to controller actions."
   s.description  = "Seamless Ruby on Rails websocket integration."
-  s.homepage     = "http://danknox.github.com/websocket-rails/"
+  s.homepage     = "http://websocket-rails.github.io"
   s.version      = WebsocketRails::VERSION
   s.platform     = Gem::Platform::RUBY
   s.authors      = [ "Dan Knox", "Kyle Whalen", "Three Dot Loft LLC" ]
   s.email        = [ "dknox@threedotloft.com" ]
+  s.license      = "MIT"
 
   s.rubyforge_project = "websocket-rails"
 

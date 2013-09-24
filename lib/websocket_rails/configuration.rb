@@ -1,12 +1,36 @@
 module WebsocketRails
   class Configuration
 
+    def user_identifier
+      @user_identifier ||= :id
+    end
+
+    def user_identifier=(identifier)
+      @user_identifier = identifier
+    end
+
+    def user_class
+      @user_class ||= User
+    end
+
+    def user_class=(klass)
+      @user_class = klass
+    end
+
     def keep_subscribers_when_private?
       @keep_subscribers_when_private ||= false
     end
 
     def keep_subscribers_when_private=(value)
       @keep_subscribers_when_private = value
+    end
+
+    def broadcast_subscriber_events?
+      @broadcast_subscriber_events ||= false
+    end
+
+    def broadcast_subscriber_events=(value)
+      @broadcast_subscriber_events = value
     end
 
     def route_block=(routes)
