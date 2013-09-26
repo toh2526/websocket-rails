@@ -132,7 +132,6 @@ module WebsocketRails
       @namespace    = validate_namespace( options[:namespace] || namespace )
     end
 
-<<<<<<< HEAD
     def serialize
       #[
       #  encoded_name,
