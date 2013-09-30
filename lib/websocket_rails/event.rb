@@ -132,18 +132,19 @@ module WebsocketRails
       @namespace    = validate_namespace( options[:namespace] || namespace )
     end
 
-    def serialize
+    def as_json
       #[
       #  encoded_name,
       #  {
       #    :id => id,
       #    :channel => channel,
+      #    :user_id => user_id,
       #    :data => data,
       #    :success => success,
       #    :result => result,
       #    :server_token => server_token
       #  }
-      #].to_json
+      #]
       p_id = PROTOCOLS[encoded_name.to_sym]
 
       if !p_id.nil?
@@ -154,22 +155,7 @@ module WebsocketRails
         end
       end
 
-      data.to_json
-    end
-
-    def as_json
-      [
-        encoded_name,
-        {
-          :id => id,
-          :channel => channel,
-          :user_id => user_id,
-          :data => data,
-          :success => success,
-          :result => result,
-          :server_token => server_token
-        }
-      ]
+      data
     end
 
     def serialize
