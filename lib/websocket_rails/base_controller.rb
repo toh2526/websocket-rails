@@ -127,6 +127,12 @@ module WebsocketRails
       @_dispatcher.broadcast_message event if @_dispatcher.respond_to?(:broadcast_message)
     end
 
+    def trigger(event_name, message, options={})
+      options.merge! :connection => connection, :data => message
+      event = Event.new( event_name, options )
+      @_dispatcher.dispatch event if @_dispatcher.respond_to?(:broadcast_message)
+    end
+
     def request
       connection.request
     end
