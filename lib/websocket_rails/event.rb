@@ -146,6 +146,7 @@ module WebsocketRails
       #    :server_token => server_token
       #  }
       #]
+      begin
       if data.nil? || data[:p_id].nil? && data[:command].nil?
         p_id = PROTOCOLS[encoded_name.to_sym]
 
@@ -156,6 +157,9 @@ module WebsocketRails
             data[:p_id] = p_id
           end
         end
+      end
+      rescue Exception => e
+        raise "data #{data.class.name} #{e.message}"
       end
 
       data
