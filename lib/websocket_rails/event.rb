@@ -74,6 +74,8 @@ module WebsocketRails
     def self.new_from_json(encoded_data, connection)
       case encoded_data
       when String
+        debug "self.new_from_json #{encoded_data}"
+
         #event_name, data = JSON.parse encoded_data 
         #data = data.merge(:connection => connection).with_indifferent_access
         jobj = JSON.parse(encoded_data, { symbolize_names: true })
@@ -83,6 +85,8 @@ module WebsocketRails
         else
           event_name = PROTOCOLS[jobj[:command]].to_s unless jobj[:command].nil?
         end
+
+        debug "self.new_from_json parsed #{event_name}"
 
         Event.new event_name, {
           :id => 1,
