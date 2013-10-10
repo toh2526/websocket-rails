@@ -146,16 +146,20 @@ module WebsocketRails
       #    :server_token => server_token
       #  }
       #]
-      if data.class.name == 'Hash' && data[:p_id].nil? && data[:command].nil?
-        p_id = PROTOCOLS[encoded_name.to_sym]
+      if data.is_a?(Hash)
+        if data[:p_id].nil? && data[:command].nil?
+          p_id = PROTOCOLS[encoded_name.to_sym]
 
-        if !p_id.nil?
-          if p_id < 10
-            data[:command] = p_id
-          else
-            data[:p_id] = p_id
+          if !p_id.nil?
+            if p_id < 10
+              data[:command] = p_id
+            else
+              data[:p_id] = p_id
+            end
           end
         end
+      else
+        raise "data is #{data.class.name}"
       end
 
       data
