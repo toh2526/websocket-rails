@@ -158,8 +158,6 @@ module WebsocketRails
             end
           end
         end
-      else
-        raise "data is #{data.class.name}"
       end
 
       data
