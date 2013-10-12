@@ -80,10 +80,17 @@ module WebsocketRails
         #data = data.merge(:connection => connection).with_indifferent_access
         jobj = JSON.parse(encoded_data, { symbolize_names: true })
 
+        protocol_id = nil
         if !jobj[:p_id].nil?
-          event_name = PROTOCOLS[jobj[:p_id]].to_s
+          protocol_id = jobj[:p_id]
+        elsif !jobj[:command].nil?
+          protocol_id = jobj[:command]
+        end
+
+        if !protocol_id.nil?
+          event_name = PROTOCOLS[protocol_id].to_s
         else
-          event_name = PROTOCOLS[jobj[:command]].to_s unless jobj[:command].nil?
+          event_name = 'unknown'
         end
 
         debug "self.new_from_json parsed #{event_name}"
