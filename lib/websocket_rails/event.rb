@@ -155,7 +155,7 @@ module WebsocketRails
       #    :server_token => server_token
       #  }
       #]
-      if data.is_a?(Hash)
+      if data.class.name == 'Hash'
         if data[:p_id].nil? && data[:command].nil?
           p_id = PROTOCOLS[encoded_name.to_sym]
 
