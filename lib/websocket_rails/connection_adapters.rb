@@ -89,18 +89,19 @@ module WebsocketRails
         #end
 
         #send "[#{event.serialize}]"
-        send event.serialize
+        send event.serialize unless event.nil?
       end
 
       def trigger_ping
-	ping nil do
+        ping nil do
           onpong() 
-	end
+        end
       end
 
       def onpong
         pong = true
-        send "[#{event.serialize}]"
+        #send "[#{event.serialize}]"
+        send event.serialize unless event.nil?
       end
 
       def flush
