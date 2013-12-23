@@ -6,7 +6,7 @@ module WebsocketRails
     let(:encoded_message_string) { '["new_message",{"id":"1234","data":"this is a message"}]' }
     let(:namespace_encoded_message_string) { '["product.new_message",{"id":"1234","data":"this is a message"}]' }
     let(:namespace_encoded_message) { '["product.new_message",{"id":"1234","data":{"message":"this is a message"}}]' }
-    let(:channel_encoded_message_string) { '["new_message",{"id":"1234","channel":"awesome_channel","user_id":null,"data":"this is a message","success":null,"result":null,"server_token":"1234"}]' }
+    let(:channel_encoded_message_string) { '["new_message",{"id":"1234","channel":"awesome_channel","user_id":null,"data":"this is a message","success":null,"result":null,"token":null,"server_token":"1234"}]' }
     let(:synchronizable_encoded_message) { '["new_message",{"id":"1234","data":{"message":"this is a message"},"server_token":"1234"}]' }
     let(:connection) { double('connection') }
 
@@ -87,6 +87,12 @@ module WebsocketRails
         event.channel.should == :awesome_channel
         event.name.should == :event
       end
+
+      it "should not raise an error if the channel name cannot be symbolized" do
+        expect { Event.new "event", :data => {}, :connection => connection, :channel => 5 }.to_not raise_error(NoMethodError)
+        event = Event.new "event", :data => {}, :connection => connection, :channel => 5
+        event.channel.should == :"5"
+      end
     end
 
     describe "#is_channel?" do
@@ -149,6 +155,16 @@ module WebsocketRails
           raw_data = event.serialize
           data = JSON.parse raw_data
           data[1]['server_token'].should == '1234'
+        end
+      end
+
+      describe "#as_json" do
+        it "returns a Hash representation of the Event" do
+          hash = { data: { 'test' => 'test'}, channel: :awesome_channel }
+          event = Event.new 'test', hash
+          event.as_json[0].should == :test
+          event.as_json[1][:data].should == hash[:data]
+          event.as_json[1][:channel].should == hash[:channel]
         end
       end
     end
