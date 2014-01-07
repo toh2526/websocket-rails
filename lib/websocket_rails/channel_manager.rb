@@ -9,7 +9,7 @@ module WebsocketRails
     end
 
     def [](channel)
-      channel_manager[channel.to_sym]
+      channel_manager[channel]
     end
 
     def channel_tokens
@@ -37,7 +37,7 @@ module WebsocketRails
     end
 
     def [](channel)
-      @channels[channel.to_sym] ||= Channel.new channel
+      @channels[channel] ||= Channel.new channel
     end
 
     def unsubscribe(connection)
