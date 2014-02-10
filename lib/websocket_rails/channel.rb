@@ -17,7 +17,7 @@ module WebsocketRails
       info "#{connection} subscribed to channel #{name}"
       trigger 'subscriber_join', connection.user if config.broadcast_subscriber_events?
       @subscribers << connection
-      #send_token connection
+      send_token connection
     end
 
     def unsubscribe(connection)
