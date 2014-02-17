@@ -1,34 +1,23 @@
 describe 'WebsocketRails.WebSocketConnection:', ->
-  SAMPLE_EVENT_DATA = ['event','message']
-  SAMPLE_EVENT = 
-    data: JSON.stringify(SAMPLE_EVENT_DATA)
-
   beforeEach ->
-    @dispatcher =
+    dispatcher =
       new_message: -> true
       dispatch: -> true
       state: 'connected'
     # Have to stub the WebSocket object due to Firefox error during jasmine:ci
-    window.WebSocket = class WebSocketStub
-      constructor: (@url, @dispatcher) ->
-      send: -> true
-      close: -> @onclose(null)
-    @connection = new WebSocketRails.WebSocketConnection('localhost:3000/websocket', @dispatcher)
-    @dispatcher._conn = @connection
+    window.WebSocket = (url) ->
+      @url  = url
+      @send = -> true
+    @dispatcher = dispatcher
+    @connection = new WebSocketRails.WebSocketConnection('localhost:3000/websocket', dispatcher)
 
   describe 'constructor', ->
 
-    it 'should redirect onmessage events\' data from the WebSocket object to this.on_message', ->
-      mock_connection = sinon.mock @connection
-      mock_connection.expects('on_message').once().withArgs SAMPLE_EVENT_DATA
-      @connection._conn.onmessage(SAMPLE_EVENT)
-      mock_connection.verify()
+    it 'should set the onmessage event on the WebSocket object to this.on_message', ->
+      expect(@connection._conn.onmessage).toEqual @connection.on_message
 
-    it 'should redirect onclose events from the WebSocket object to this.on_close', ->
-      mock_connection = sinon.mock @connection
-      mock_connection.expects('on_close').once().withArgs SAMPLE_EVENT
-      @connection._conn.onclose(SAMPLE_EVENT)
-      mock_connection.verify()
+    it 'should set the onclose event on the WebSocket object to this.on_close', ->
+      expect(@connection._conn.onclose).toEqual @connection.on_close
 
     describe 'with ssl', ->
       it 'should not add the ws:// prefix to the URL', ->
@@ -38,11 +27,6 @@ describe 'WebsocketRails.WebSocketConnection:', ->
     describe 'without ssl', ->
       it 'should add the ws:// prefix to the URL', ->
         expect(@connection.url).toEqual 'ws://localhost:3000/websocket'
-
-  describe '.close', ->
-    it 'should close the connection', ->
-      @connection.close()
-      expect(@dispatcher.state).toEqual 'disconnected'
 
   describe '.trigger', ->
 
@@ -67,12 +51,13 @@ describe 'WebsocketRails.WebSocketConnection:', ->
   describe '.on_message', ->
 
     it 'should decode the message and pass it to the dispatcher', ->
+      encoded_data = JSON.stringify ['event','message']
+      event =
+        data: encoded_data
       mock_dispatcher = sinon.mock @connection.dispatcher
-      mock_dispatcher.expects('new_message').once().withArgs SAMPLE_EVENT_DATA
-      @connection.on_message SAMPLE_EVENT_DATA
+      mock_dispatcher.expects('new_message').once().withArgs JSON.parse encoded_data
+      @connection.on_message event
       mock_dispatcher.verify()
-
-
 
   describe '.on_close', ->
     it 'should dispatch the connection_closed event and pass the original event', ->
@@ -114,29 +99,6 @@ describe 'WebsocketRails.WebSocketConnection:', ->
       @connection.on_error close_event
 
       expect(@dispatcher.state).toEqual('disconnected')
-
-  describe "it's no longer active connection", ->
-    beforeEach ->
-      @new_connection = new WebSocketRails.WebSocketConnection('localhost:3000/websocket', @dispatcher)
-      @dispatcher._conn = @new_connection
-
-    it ".on_error should not react to the event response", ->
-      mock_dispatcher = sinon.mock @connection.dispatcher
-      mock_dispatcher.expects('dispatch').never()
-      @connection.on_error SAMPLE_EVENT_DATA
-      mock_dispatcher.verify()
-
-    it ".on_close should not react to the event response", ->
-      mock_dispatcher = sinon.mock @connection.dispatcher
-      mock_dispatcher.expects('dispatch').never()
-      @connection.on_close SAMPLE_EVENT_DATA
-      mock_dispatcher.verify()
-
-    it ".on_message should not react to the event response", ->
-      mock_dispatcher = sinon.mock @connection.dispatcher
-      mock_dispatcher.expects('new_message').never()
-      @connection.on_message SAMPLE_EVENT_DATA
-      mock_dispatcher.verify()
 
   describe '.flush_queue', ->
     beforeEach ->

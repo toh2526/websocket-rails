@@ -1,7 +1,6 @@
 module WebsocketRails
   module ConnectionAdapters
     class WebSocket < Base
-      include Logging
 
       def self.accepts?(env)
         Faye::WebSocket.websocket?( env )
@@ -13,12 +12,10 @@ module WebsocketRails
         @connection.onmessage = method(:on_message)
         @connection.onerror   = method(:on_error)
         @connection.onclose   = method(:on_close)
-        EM.next_tick do
-          on_open
-        end
+        on_open
       end
 
-      def ping(message=nil, &callback)
+      def ping(message = nil, &callback)
         @connection.ping(message, &callback)
       end
 
@@ -32,8 +29,6 @@ module WebsocketRails
       end
 
       def close!
-        debug "ConnectionAdapters.WebSocket.close!"
-
         @connection.close
       end
 

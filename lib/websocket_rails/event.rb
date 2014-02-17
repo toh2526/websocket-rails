@@ -2,19 +2,21 @@ module WebsocketRails
 
   module StaticEvents
 
-    def new_on_open(connection,data=nil)
+    def new_on_open(connection, data = nil)
       connection_id = {
-        :id => connection.id
+	:id => 'abcd',
+        :command => 0,
+        :p_id => 0
       }
       data = data.is_a?(Hash) ? data.merge( connection_id ) : connection_id
       Event.new :client_connected, :data => data, :connection => connection
     end
 
-    def new_on_close(connection,data=nil)
+    def new_on_close(connection, data = nil)
       Event.new :client_disconnected, :data => data, :connection => connection
     end
 
-    def new_on_error(connection,data=nil)
+    def new_on_error(connection, data = nil)
       Event.new :client_error, :data => data, :connection => connection
     end
 
@@ -22,11 +24,11 @@ module WebsocketRails
       Event.new :ping, :data => {}, :connection => connection, :namespace => :websocket_rails
     end
 
-    def new_on_pong(connection)
-      Event.new :pong, :data => {}, :connection => connection, :namespace => :websocket_rails
-    end
+    #def new_on_pong(connection)
+    #  Event.new :pong, :data => {}, :connection => connection, :namespace => :websocket_rails
+    #end
 
-    def new_on_invalid_event_received(connection,data=nil)
+    def new_on_invalid_event_received(connection,data = nil)
       Event.new :invalid_event, :data => data, :connection => connection
     end
 
@@ -72,33 +74,26 @@ module WebsocketRails
     end
 
     def self.new_from_json(encoded_data, connection)
+      debug "New From JSON: encoded_data: #{encoded_data}, connection: #{connection}"
+
       case encoded_data
       when String
-        debug "self.new_from_json #{encoded_data}"
-
-        #event_name, data = JSON.parse encoded_data 
+        #event_name, data = JSON.parse encoded_data
         #data = data.merge(:connection => connection).with_indifferent_access
-        jobj = JSON.parse(encoded_data, { symbolize_names: true })
 
-        event_name = nil
-        if !jobj[:p_id].nil?
-          event_name = PROTOCOLS[jobj[:p_id]]
-        elsif !jobj[:command].nil?
-          event_name = PROTOCOLS[jobj[:command]]
-        end
+	data       = JSON.parse encoded_data.to_s
+        data       = data.merge(:connection => connection, :data => (data['data'].nil? ? data : data['data'])).with_indifferent_access
+	event_name = :pong
+        
+	if !data['p_id'].nil?
+	  event_name = PROTOCOLS[data['p_id']]
+	elsif !data['command'].nil?
+	  event_name = PROTOCOLS[data['command']]
+	end
 
-        if event_name.nil?
-          event_name = :unknown
-        end
+	debug "New From JSON: event_name: #{event_name}, data: #{data.inspect}"
 
-        debug "self.new_from_json parsed #{event_name}"
-
-        Event.new event_name, {
-          :id => 1,
-          :connection => connection,
-          :data => jobj
-        }
-
+        Event.new event_name.to_sym, data
         # when Array
         # TODO: Handle file
         #File.open("/tmp/test#{rand(100)}.jpg", "wb") do |file|
@@ -119,9 +114,9 @@ module WebsocketRails
     include Logging
     extend StaticEvents
 
-    attr_reader :id, :name, :connection, :namespace, :channel, :user_id, :token
+    attr_reader :id, :name, :connection, :namespace, :channel, :user_id
 
-    attr_accessor :data, :result, :success, :server_token
+    attr_accessor :data, :result, :success, :server_token, :token
 
     def initialize(event_name, options={})
       case event_name
@@ -132,49 +127,47 @@ module WebsocketRails
         @name       = event_name
         namespace   = [:global]
       end
-      @id           = options[:id]
+      @id           = options[:id] if options[:id]
       @data         = options[:data].is_a?(Hash) ? options[:data].with_indifferent_access : options[:data]
-      @channel      = options[:channel].to_sym rescue options[:channel].to_s.to_sym if options[:channel]
+      @channel      = options[:channel].to_sym if options[:channel]
+      @connection   = options[:connection] if options[:connection]
       @token        = options[:token] if options[:token]
-      @connection   = options[:connection]
-      @server_token = options[:server_token]
-      @user_id      = options[:user_id]
+      @server_token = options[:server_token] if options[:server_token]
+      @user_id      = options[:user_id] if options[:user_id]
       @namespace    = validate_namespace( options[:namespace] || namespace )
     end
 
     def as_json
-      #[
-      #  encoded_name,
-      #  {
-      #    :id => id,
-      #    :channel => channel,
-      #    :user_id => user_id,
-      #    :data => data,
-      #    :success => success,
-      #    :result => result,
-      #    :token => token,
-      #    :server_token => server_token
-      #  }
-      #]
-      if data.is_a?(Hash)
-        if data[:p_id].nil? && data[:command].nil?
-          p_id = PROTOCOLS[encoded_name.to_sym]
-
-          if !p_id.nil?
-            if p_id < 10
-              data[:command] = p_id
-            else
-              data[:p_id] = p_id
-            end
-          end
-        end
-      end
-
-      data
+      [
+        encoded_name,
+        {
+          :id => id,
+          :channel => channel,
+          :user_id => user_id,
+          :data => data,
+          :success => success,
+          :result => result,
+	  :token => token,
+          :server_token => server_token
+        }
+      ]
     end
 
     def serialize
-      as_json.to_json
+      {
+	:id => id,
+        :channel => channel,
+        :user_id => user_id,
+        :data => data,
+        :success => success,
+        :result => result,
+        :token => token,
+        :server_token => server_token
+      }.to_json
+    end
+
+    def serialize_data
+      data.to_json
     end
 
     def is_channel?

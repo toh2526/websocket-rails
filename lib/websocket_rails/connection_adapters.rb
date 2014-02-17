@@ -37,8 +37,7 @@ module WebsocketRails
         @request    = request
         @dispatcher = dispatcher
         @connected  = true
-        @pong       = true
-        @auth       = false
+	@auth       = false
         @queue      = EventQueue.new
         @data_store = DataStore::Connection.new(self)
         @delegate   = WebsocketRails::DelegationController.new
@@ -48,28 +47,33 @@ module WebsocketRails
         start_ping_timer
       end
 
-      def on_open(data=nil)
+      def on_open(data = nil)
         event = Event.new_on_open( self, data )
+
+	debug "On Open: #{event.inspect}"
+
         dispatch event
         trigger event
       end
 
       def on_message(encoded_data)
         event = Event.new_from_json( encoded_data, self )
+
+	debug "On Message: #{event.inspect}"
+
         dispatch event
       end
 
-      def on_close(data=nil)
-        debug "ConnectionAdapters.on_close"
+      def on_close(data = nil)
+	debug "On Close"
 
         @ping_timer.cancel
         dispatch Event.new_on_close( self, data )
         close_connection
       end
 
-      def on_error(data=nil)
-        debug "ConnectionAdapters.on_error"
-        debug "on_error: #{data.class.name} #{data.inspect}"
+      def on_error(data = nil)
+	debug "On Error: data: #{data.inspect}"
 
         event = Event.new_on_error( self, data )
         dispatch event
@@ -81,27 +85,9 @@ module WebsocketRails
       end
 
       def trigger(event)
-        # Uncomment when implementing history queueing with redis
-        #enqueue event
-        #unless flush_scheduled
-        #  EM.next_tick { flush; flush_scheduled = false }
-        #  flush_scheduled = true
-        #end
-
-        #send "[#{event.serialize}]"
-        send event.serialize unless event.nil?
-      end
-
-      def trigger_ping
-        ping nil do
-          onpong() 
-        end
-      end
-
-      def onpong
-        pong = true
-        #send "[#{event.serialize}]"
-        send event.serialize unless event.nil?
+        debug "Trigger: event: serialize_data: #{event.serialize_data}"
+	#send "[#{event.serialize}]"
+	send event.serialize_data
       end
 
       def flush
@@ -148,20 +134,22 @@ module WebsocketRails
         not user_identifier.nil?
       end
 
-      def user
-        return unless user_connection?
-        controller_delegate.current_user
-      end
+      attr_accessor :user, :user_identifier
 
-      def user_identifier
-        @user_identifier ||= begin
-          identifier = WebsocketRails.config.user_identifier
+      #def user
+      #  return unless user_connection?
+      #  controller_delegate.current_user
+      #end
 
-          return unless current_user_responds_to?(identifier)
-
-          controller_delegate.current_user.send(identifier)
-         end
-      end
+      #def user_identifier
+      #  @user_identifier ||= begin
+      #    identifier = WebsocketRails.config.user_identifier
+      #
+      #    return unless current_user_responds_to?(identifier)
+      #
+      #    controller_delegate.current_user.send(identifier)
+      #   end
+      #end
 
       private
 
@@ -174,15 +162,10 @@ module WebsocketRails
       end
 
       def close_connection
-        debug "ConnectionAdapters.close_connection"
-
         @data_store.destroy!
         @ping_timer.try(:cancel)
         dispatcher.connection_manager.close_connection self
       end
-
-      attr_accessor :pong, :auth
-      public :pong, :pong=, :auth, :auth=
 
       def current_user_responds_to?(identifier)
         controller_delegate                            &&
@@ -191,14 +174,21 @@ module WebsocketRails
         controller_delegate.current_user.respond_to?(identifier)
       end
 
+      attr_accessor :auth
+      public :auth, :auth=
+
       attr_accessor :pong
       public :pong, :pong=
 
       def start_ping_timer
-        @ping_timer = EM::PeriodicTimer.new(10) do
-          if pong == true && auth == true
-            pong = false
-            trigger_ping
+        @pong = true
+        debug "Start Ping Timer: pong: #{@pong}, auth: #{@auth}"
+        @ping_timer = EM::PeriodicTimer.new(15) do
+          debug "Start Ping Timer: EM: pong: #{@pong}, auth: #{@auth}"
+          if @pong == true && @auth == true
+            self.pong = false
+            ping = Event.new_on_ping self
+            trigger ping
           else
             @ping_timer.cancel
             on_error

@@ -30,13 +30,14 @@ end
 
 require 'websocket_rails/engine'
 
+require 'websocket_rails/enum'
+
 require 'websocket_rails/configuration'
 require 'websocket_rails/logging'
 require 'websocket_rails/synchronization'
 require 'websocket_rails/connection_manager'
 require 'websocket_rails/dispatcher'
 require 'websocket_rails/controller_factory'
-require 'websocket_rails/enum'
 require 'websocket_rails/event'
 require 'websocket_rails/event_map'
 require 'websocket_rails/event_queue'

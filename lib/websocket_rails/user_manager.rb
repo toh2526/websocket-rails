@@ -34,6 +34,7 @@ module WebsocketRails
   end
 
   class UserManager
+    include Logging
 
     attr_reader :users
 
@@ -110,6 +111,8 @@ module WebsocketRails
     def find_remote_user(identifier)
       return unless WebsocketRails.synchronize?
       user_hash = Synchronization.find_user(identifier) || return
+
+      debug "Find Remote User: identifier: #{identifier}, user_hash: #{user_hash}"
 
       remote_connection identifier, user_hash
     end
@@ -189,10 +192,13 @@ module WebsocketRails
     end
 
     class RemoteConnection
+      include Logging
 
       attr_reader :user_identifier, :user
 
       def initialize(identifier, user_hash)
+	debug "Initialize: identifier: #{identifier}, user_hash: #{user_hash}"
+
         @user_identifier = identifier.to_s
         @user_hash = user_hash
       end
@@ -211,10 +217,12 @@ module WebsocketRails
 
         event = Event.new(event_name, options)
 
+	debug "Send Message: #{event.inspect}"
+
         # If the user is connected to this worker, trigger the event
         # immediately as the event will be ignored by the Synchronization
         ## dispatcher since the server_token will match.
-        if connection = WebsocketRails.users.users[@user_identifier]
+        if connection = WebsocketRails.users[@user_identifier]
           connection.trigger event
         end
 
@@ -231,9 +239,10 @@ module WebsocketRails
       private
 
       def load_user
-        user = WebsocketRails.config.user_class.new
-        set_user_attributes user, @user_hash
-        user
+        #user = WebsocketRails.config.user_class.new
+        #set_user_attributes user, @user_hash
+        #user
+	@user_hash
       end
 
       def set_user_attributes(user, attr)

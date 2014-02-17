@@ -63,7 +63,7 @@ module WebsocketRails
     private
 
     def parse_incoming_event(params)
-      connection = find_connection_by_id(params["client_id"])
+      connection = find_connection_by_id(params["client_id"].to_i)
       connection.on_message params["data"]
       SuccessfulResponse
     end
@@ -87,8 +87,6 @@ module WebsocketRails
     end
 
     def close_connection(connection)
-      debug "ConnectionManager.close_connection"
-
       WebsocketRails.channel_manager.unsubscribe connection
       destroy_user_connection connection
 

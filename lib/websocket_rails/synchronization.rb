@@ -80,6 +80,8 @@ module WebsocketRails
             on.message do |_, encoded_event|
               event = Event.new_from_json(encoded_event, nil)
 
+              debug "Synchronize!: event: #{event.inspect}, server_token: #{server_token}"
+
               # Do nothing if this is the server that sent this event.
               next if event.server_token == server_token
 
@@ -87,6 +89,8 @@ module WebsocketRails
               # redis queue from other processes may not have a server token
               # attached.
               event.server_token = server_token if event.server_token.nil?
+
+              debug "Synchronize!: trigger_incoming: #{event.inspect}"
 
               trigger_incoming event
             end
@@ -112,11 +116,17 @@ module WebsocketRails
     end
 
     def trigger_incoming(event)
+      debug "Trigger Incoming: is_channel?: #{event.is_channel?}, is_user?: #{event.is_user?}"
       case
       when event.is_channel?
+        debug "Trigger Incoming: #{event.channel}"
+
         WebsocketRails[event.channel].trigger_event(event)
       when event.is_user?
         connection = WebsocketRails.users[event.user_id.to_s]
+
+	debug "Trigger Incoming: connection: #{connection.inspect}"
+
         return if connection.nil?
         connection.trigger event
       end
@@ -151,7 +161,7 @@ module WebsocketRails
       Fiber.new do
         id = connection.user_identifier
         user = connection.user
-        redis.hset 'websocket_rails.users', id, user.as_json(root: false).to_json
+        redis.hset 'websocket_rails.users', id, user.to_s
       end.resume
     end
 
@@ -161,10 +171,24 @@ module WebsocketRails
       end.resume
     end
 
+    #def find_user(identifier)
+    #  raw_user = nil
+    #  Fiber.new do
+    #    redis_client = EM.reactor_running? ? redis : ruby_redis
+    #    raw_user = redis_client.hget('websocket_rails.users', identifier)
+    #
+    #	debug "Find User: Found!! #{raw_user.class} == #{raw_user.nil?} == #{raw_user}"
+    #  end.resume
+    #  raw_user.nil? ? nil : JSON.parse(raw_user)
+    #end
+
     def find_user(identifier)
-      Fiber.new do
-        raw_user = redis.hget('websocket_rails.users', identifier)
-        raw_user ? JSON.parse(raw_user) : nil
+      Fiber.new do 
+        raw_user = redis.hget('websocket_rails.users', identifier)          
+        
+        debug "Find User: raw_user: #{raw_user}"
+
+        raw_user ? raw_user : nil
       end.resume
     end
 

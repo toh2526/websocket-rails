@@ -22,11 +22,14 @@ module WebsocketRails
     end
 
     def dispatch(event)
+      #debug "Dispatch: is_invalid?: #{event.is_invalid?}"
       return if event.is_invalid?
 
+      #debug "Dispatch: is_channel?: #{event.is_channel?}"
       if event.is_channel?
         WebsocketRails[event.channel].trigger_event event
       else
+        #debug "Dispatch: is_internal?: #{event.is_internal?}"
         reload_event_map! unless event.is_internal?
         route event
       end
@@ -71,6 +74,9 @@ module WebsocketRails
           end
         end
       end
+
+      #debug "Route: before execute: #{actions.inspect}"
+
       execute actions
     end
 
