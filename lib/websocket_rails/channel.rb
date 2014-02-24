@@ -62,7 +62,7 @@ module WebsocketRails
       debug "Send Data: subscribers: #{subscribers.inspect}"
 
       subscribers.each do |subscriber|
-	debug "Send Data: each subscriber: #{subscriber.inspect}"
+	      debug "Send Data: each subscriber: #{subscriber.inspect}"
         subscriber.trigger event
       end
     end

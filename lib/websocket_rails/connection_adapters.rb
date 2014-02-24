@@ -37,7 +37,7 @@ module WebsocketRails
         @request    = request
         @dispatcher = dispatcher
         @connected  = true
-	@auth       = false
+	      @auth       = false
         @queue      = EventQueue.new
         @data_store = DataStore::Connection.new(self)
         @delegate   = WebsocketRails::DelegationController.new
@@ -50,7 +50,7 @@ module WebsocketRails
       def on_open(data = nil)
         event = Event.new_on_open( self, data )
 
-	debug "On Open: #{event.inspect}"
+	      debug "On Open: #{event.inspect}"
 
         dispatch event
         trigger event
@@ -59,21 +59,21 @@ module WebsocketRails
       def on_message(encoded_data)
         event = Event.new_from_json( encoded_data, self )
 
-	debug "On Message: #{event.inspect}"
+	      debug "On Message: #{event.inspect}"
 
         dispatch event
       end
 
       def on_close(data = nil)
-	debug "On Close"
+	      debug 'On Close'
 
-        @ping_timer.cancel
+        @ping_timer.try(:cancel)
         dispatch Event.new_on_close( self, data )
         close_connection
       end
 
       def on_error(data = nil)
-	debug "On Error: data: #{data.inspect}"
+	      debug "On Error: data: #{data.inspect}"
 
         event = Event.new_on_error( self, data )
         dispatch event
@@ -86,8 +86,7 @@ module WebsocketRails
 
       def trigger(event)
         debug "Trigger: event: serialize_data: #{event.serialize_data}"
-	#send "[#{event.serialize}]"
-	send event.serialize_data
+	      send event.serialize_data
       end
 
       def flush
@@ -136,20 +135,11 @@ module WebsocketRails
 
       attr_accessor :user, :user_identifier
 
-      #def user
-      #  return unless user_connection?
-      #  controller_delegate.current_user
-      #end
-
-      #def user_identifier
-      #  @user_identifier ||= begin
-      #    identifier = WebsocketRails.config.user_identifier
-      #
-      #    return unless current_user_responds_to?(identifier)
-      #
-      #    controller_delegate.current_user.send(identifier)
-      #   end
-      #end
+      def close_connection
+        @data_store.destroy!
+        @ping_timer.try(:cancel)
+        dispatcher.connection_manager.close_connection self
+      end
 
       private
 
@@ -159,12 +149,6 @@ module WebsocketRails
 
       def connection_manager
         dispatcher.connection_manager
-      end
-
-      def close_connection
-        @data_store.destroy!
-        @ping_timer.try(:cancel)
-        dispatcher.connection_manager.close_connection self
       end
 
       def current_user_responds_to?(identifier)
@@ -182,19 +166,34 @@ module WebsocketRails
 
       def start_ping_timer
         @pong = true
-        debug "Start Ping Timer: pong: #{@pong}, auth: #{@auth}"
         @ping_timer = EM::PeriodicTimer.new(15) do
-          debug "Start Ping Timer: EM: pong: #{@pong}, auth: #{@auth}"
-          if @pong == true && @auth == true
+          if @auth == true
             self.pong = false
-            ping = Event.new_on_ping self
-            trigger ping
+            ping nil do
+              self.pong = true
+            end
           else
             @ping_timer.cancel
             on_error
           end
         end
       end
+
+      #def start_ping_timer
+      #  @pong = true
+      #  debug "Start Ping Timer: pong: #{@pong}, auth: #{@auth}"
+      #  @ping_timer = EM::PeriodicTimer.new(15) do
+      #    debug "Start Ping Timer: EM: pong: #{@pong}, auth: #{@auth}"
+      #    if @pong == true && @auth == true
+      #      self.pong = false
+      #      ping = Event.new_on_ping self
+      #      trigger ping
+      #    else
+      #      @ping_timer.cancel
+      #      on_error
+      #    end
+      #  end
+      #end
 
     end
   end

@@ -93,6 +93,7 @@ module WebsocketRails
       connections.delete connection.id
 
       info "Connection closed: #{connection}"
+      connection.close!
       connection = nil
     end
     public :close_connection

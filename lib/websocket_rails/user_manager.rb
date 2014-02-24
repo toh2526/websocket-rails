@@ -197,7 +197,7 @@ module WebsocketRails
       attr_reader :user_identifier, :user
 
       def initialize(identifier, user_hash)
-	debug "Initialize: identifier: #{identifier}, user_hash: #{user_hash}"
+	      debug "Initialize: identifier: #{identifier}, user_hash: #{user_hash}"
 
         @user_identifier = identifier.to_s
         @user_hash = user_hash
@@ -217,7 +217,7 @@ module WebsocketRails
 
         event = Event.new(event_name, options)
 
-	debug "Send Message: #{event.inspect}"
+	      debug "Send Message: #{event.inspect}"
 
         # If the user is connected to this worker, trigger the event
         # immediately as the event will be ignored by the Synchronization
@@ -242,7 +242,7 @@ module WebsocketRails
         #user = WebsocketRails.config.user_class.new
         #set_user_attributes user, @user_hash
         #user
-	@user_hash
+	      @user_hash
       end
 
       def set_user_attributes(user, attr)

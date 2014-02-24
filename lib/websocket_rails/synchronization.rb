@@ -125,7 +125,7 @@ module WebsocketRails
       when event.is_user?
         connection = WebsocketRails.users[event.user_id.to_s]
 
-	debug "Trigger Incoming: connection: #{connection.inspect}"
+	      debug "Trigger Incoming: connection: #{connection.inspect}"
 
         return if connection.nil?
         connection.trigger event
@@ -171,21 +171,10 @@ module WebsocketRails
       end.resume
     end
 
-    #def find_user(identifier)
-    #  raw_user = nil
-    #  Fiber.new do
-    #    redis_client = EM.reactor_running? ? redis : ruby_redis
-    #    raw_user = redis_client.hget('websocket_rails.users', identifier)
-    #
-    #	debug "Find User: Found!! #{raw_user.class} == #{raw_user.nil?} == #{raw_user}"
-    #  end.resume
-    #  raw_user.nil? ? nil : JSON.parse(raw_user)
-    #end
-
     def find_user(identifier)
-      Fiber.new do 
-        raw_user = redis.hget('websocket_rails.users', identifier)          
-        
+      Fiber.new do
+        raw_user = redis.hget('websocket_rails.users', identifier)
+
         debug "Find User: raw_user: #{raw_user}"
 
         raw_user ? raw_user : nil

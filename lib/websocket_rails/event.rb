@@ -4,7 +4,7 @@ module WebsocketRails
 
     def new_on_open(connection, data = nil)
       connection_id = {
-	:id => 'abcd',
+	      :id => connection.id,
         :command => 0,
         :p_id => 0
       }
@@ -81,19 +81,19 @@ module WebsocketRails
         #event_name, data = JSON.parse encoded_data
         #data = data.merge(:connection => connection).with_indifferent_access
 
-	data       = JSON.parse encoded_data.to_s
+	      data       = JSON.parse encoded_data.to_s
         data       = data.merge(:connection => connection, :data => (data['data'].nil? ? data : data['data'])).with_indifferent_access
-	event_name = :pong
-        
-	if !data['p_id'].nil?
-	  event_name = PROTOCOLS[data['p_id']]
-	elsif !data['command'].nil?
-	  event_name = PROTOCOLS[data['command']]
-	end
+	      event_name = :pong
 
-	debug "New From JSON: event_name: #{event_name}, data: #{data.inspect}"
+        if !data['p_id'].nil?
+          event_name = PROTOCOLS[data['p_id']]
+        elsif !data['command'].nil?
+          event_name = PROTOCOLS[data['command']]
+        end
 
-        Event.new event_name.to_sym, data
+        debug "New From JSON: event_name: #{event_name}, data: #{data.inspect}"
+
+        Event.new event_name, data
         # when Array
         # TODO: Handle file
         #File.open("/tmp/test#{rand(100)}.jpg", "wb") do |file|
@@ -114,7 +114,7 @@ module WebsocketRails
     include Logging
     extend StaticEvents
 
-    attr_reader :id, :name, :connection, :namespace, :channel, :user_id
+    attr_reader :p_id, :id, :name, :connection, :namespace, :channel, :user_id
 
     attr_accessor :data, :result, :success, :server_token, :token
 
@@ -127,9 +127,10 @@ module WebsocketRails
         @name       = event_name
         namespace   = [:global]
       end
+      @p_id         = options[:p_id] if options[:p_id]
       @id           = options[:id] if options[:id]
       @data         = options[:data].is_a?(Hash) ? options[:data].with_indifferent_access : options[:data]
-      @channel      = options[:channel].to_sym if options[:channel]
+      @channel      = options[:channel].to_sym rescue options[:channel].to_s.to_sym if options[:channel]
       @connection   = options[:connection] if options[:connection]
       @token        = options[:token] if options[:token]
       @server_token = options[:server_token] if options[:server_token]
@@ -141,13 +142,14 @@ module WebsocketRails
       [
         encoded_name,
         {
+          :p_id => p_id,
           :id => id,
           :channel => channel,
           :user_id => user_id,
           :data => data,
           :success => success,
           :result => result,
-	  :token => token,
+	        :token => token,
           :server_token => server_token
         }
       ]
@@ -155,7 +157,8 @@ module WebsocketRails
 
     def serialize
       {
-	:id => id,
+        :p_id => p_id,
+	      :id => id,
         :channel => channel,
         :user_id => user_id,
         :data => data,
