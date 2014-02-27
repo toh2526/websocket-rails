@@ -167,7 +167,10 @@ module WebsocketRails
       def start_ping_timer
         @pong = true
         @ping_timer = EM::PeriodicTimer.new(15) do
-          if @auth == true
+          redis = Synchronization.em_redis.hexists('websocket_rails.users', @user_identifier)
+          debug "Start Ping Timer: #{redis}"
+
+          if @auth
             self.pong = false
             ping nil do
               self.pong = true

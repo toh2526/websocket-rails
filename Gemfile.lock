@@ -55,6 +55,8 @@ GEM
     coffee-script-source (1.6.3)
     daemons (1.1.9)
     diff-lcs (1.2.4)
+    em-hiredis (0.2.1)
+      hiredis (~> 0.4.0)
     em-synchrony (1.0.3)
       eventmachine (>= 1.0.0.beta.1)
     erubis (2.7.0)
@@ -210,6 +212,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord-jdbcsqlite3-adapter
   coffee-script
+  em-hiredis
   eventmachine
   faye-websocket
   guard

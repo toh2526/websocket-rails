@@ -37,6 +37,10 @@ module WebsocketRails
       singleton.redis
     end
 
+    def self.em_redis
+      singleton.em_redis
+    end
+
     def self.singleton
       @singleton ||= new
     end
@@ -57,10 +61,18 @@ module WebsocketRails
       end
     end
 
+    def em_redis
+      @em_redis ||= begin
+        redis_options = WebsocketRails.config.redis_options
+        EM.next_tick { @em_redis = EM::Hiredis.connect "redis://#{redis_options[:host]}:#{redis_options[:port]}" }
+        @em_redis
+      end
+    end
+
     def publish(event)
       Fiber.new do
         event.server_token = server_token
-        redis.publish "websocket_rails.events", event.serialize
+        redis.publish 'websocket_rails.events', event.serialize
       end.resume
     end
 
@@ -75,7 +87,7 @@ module WebsocketRails
 
         synchro = Fiber.new do
           fiber_redis = Redis.connect(WebsocketRails.config.redis_options)
-          fiber_redis.subscribe "websocket_rails.events" do |on|
+          fiber_redis.subscribe 'websocket_rails.events' do |on|
 
             on.message do |_, encoded_event|
               event = Event.new_from_json(encoded_event, nil)
@@ -96,7 +108,7 @@ module WebsocketRails
             end
           end
 
-          info "Beginning Synchronization"
+          info 'Beginning Synchronization'
         end
 
         @synchronizing = true
